@@ -1,9 +1,40 @@
-Modifica el proyecto para crear una pagina de "Gestion de suscripciones" del gimnasio "Be Strong Gym", necesito una pagina moderna pero minimalista con una paleta de colores de grises y naranjas.
+# Be Strong Gym - Gestión de Suscripciones
 
-En la seccion principal nos mostrara información acerca del gimnasio, como todavia no tengo detalles exactos puedes rellenarlo como veas.
+Aplicación web construida con React y Vite para presentar una página moderna de gestión de suscripciones del gimnasio Be Strong Gym.
 
-Necesitamos tambien una seccion donde podamos ver los planes disponibles y obviamente pagar por ellos, es una demostracion todavia asi que no te esfuerces en crear un sistema de pago, de momento solo necesitamos el "placeholder" y por ello que de momento el pago sea "falso",
+## Características principales
 
-Tambien necesito un apartado que muestre tu suscripcion actual, para ello como tenemos un pago falso necesitamos conectarlos para poder probar la pagina.
+- Hero informativo con la propuesta de valor del gimnasio.
+- Sección de beneficios destacados que refuerza la experiencia Be Strong.
+- Catálogo de planes con tarjeta destacada, precios y lista de beneficios.
+- Flujo de pago simulado para probar la activación de una suscripción.
+- Panel que muestra el estado actual de la suscripción del usuario.
 
-Te dejo total libertad si quieres crear algo mas
+## Requisitos previos
+
+- Node.js 18 o superior
+- npm 9 o superior
+
+## Scripts disponibles
+
+```bash
+npm install       # Instala las dependencias
+npm run dev       # Inicia el entorno de desarrollo en http://localhost:5173
+npm run build     # Genera la versión de producción en la carpeta dist
+npm run preview   # Sirve la build de producción de forma local
+```
+
+## Estructura del proyecto
+
+```
+├── index.html
+├── package.json
+├── public
+│   └── favicon.svg
+└── src
+    ├── App.jsx
+    ├── main.jsx
+    └── styles.css
+```
+
+¡Listo! Personaliza los textos e integra tu pasarela de pago real cuando lo necesites.
