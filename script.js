@@ -16,32 +16,13 @@ const planPrices = {
   Elite: 90000,
 };
 
-const loginToggleButton = document.getElementById('staff-login-toggle');
 const loginForm = document.getElementById('staff-login-form');
 const passwordInput = document.getElementById('staff-password');
 const loginError = document.getElementById('staff-login-error');
-const lockedPanel = document.getElementById('staff-locked');
-const unlockedPanel = document.getElementById('staff-unlocked');
-
-loginToggleButton?.addEventListener('click', () => {
-  if (!loginForm) {
-    return;
-  }
-
-  const isHidden = loginForm.hasAttribute('hidden');
-  if (isHidden) {
-    loginForm.removeAttribute('hidden');
-    passwordInput?.focus();
-  } else {
-    loginForm.setAttribute('hidden', '');
-    if (loginError) {
-      loginError.textContent = '';
-    }
-    if (passwordInput) {
-      passwordInput.value = '';
-    }
-  }
-});
+const staffAccessCard = document.getElementById('staff-access');
+const staffWorkspace = document.getElementById('staff-workspace');
+const staffIntro = document.getElementById('staff-intro');
+let isStaffAuthenticated = false;
 
 loginForm?.addEventListener('submit', (event) => {
   event.preventDefault();
@@ -55,9 +36,14 @@ loginForm?.addEventListener('submit', (event) => {
     if (loginError) {
       loginError.textContent = '';
     }
-    loginForm.setAttribute('hidden', '');
-    lockedPanel?.setAttribute('hidden', '');
-    unlockedPanel?.removeAttribute('hidden');
+    isStaffAuthenticated = true;
+    staffAccessCard?.setAttribute('hidden', '');
+    staffWorkspace?.removeAttribute('hidden');
+    staffIntro?.removeAttribute('hidden');
+    if (registrationError) {
+      registrationError.textContent = '';
+      registrationError.setAttribute('hidden', '');
+    }
     loginForm.reset();
     passwordInput.value = '';
     document.getElementById('client-name')?.focus();
@@ -65,6 +51,7 @@ loginForm?.addEventListener('submit', (event) => {
     if (loginError) {
       loginError.textContent = 'Clave incorrecta. Inténtalo nuevamente.';
     }
+    isStaffAuthenticated = false;
     passwordInput.focus();
     passwordInput.select();
   }
@@ -73,6 +60,38 @@ loginForm?.addEventListener('submit', (event) => {
 const registrationForm = document.getElementById('registration-form');
 const registrationList = document.getElementById('registration-log');
 const registrationEmpty = document.getElementById('registration-empty');
+const planValiditySelect = document.getElementById('plan-validity');
+const expirationInput = document.getElementById('payment-expiration');
+const registrationError = document.getElementById('registration-error');
+
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+const todayISO = today.toISOString().split('T')[0];
+
+if (expirationInput) {
+  expirationInput.setAttribute('readonly', '');
+  expirationInput.setAttribute('min', todayISO);
+}
+
+const updateExpirationDate = () => {
+  if (!planValiditySelect || !expirationInput) {
+    return;
+  }
+
+  const months = Number(planValiditySelect.value);
+
+  if (!Number.isFinite(months) || months <= 0) {
+    expirationInput.value = '';
+    return;
+  }
+
+  const baseDate = new Date();
+  baseDate.setHours(0, 0, 0, 0);
+  baseDate.setMonth(baseDate.getMonth() + months);
+  expirationInput.value = baseDate.toISOString().split('T')[0];
+};
+
+planValiditySelect?.addEventListener('change', updateExpirationDate);
 
 registrationForm?.addEventListener('submit', (event) => {
   event.preventDefault();
@@ -87,9 +106,25 @@ registrationForm?.addEventListener('submit', (event) => {
   const weight = Number(formData.get('client-weight') ?? 0);
   const height = Number(formData.get('client-height') ?? 0);
   const validity = String(formData.get('plan-validity') ?? '');
-  const expiration = String(formData.get('payment-expiration') ?? '');
 
-  if (!clientName || !plan || !validity || !expiration) {
+  if (!expirationInput?.value) {
+    updateExpirationDate();
+  }
+
+  if (!isStaffAuthenticated) {
+    if (registrationError) {
+      registrationError.textContent = 'Debes autenticarte para registrar inscripciones.';
+      registrationError.removeAttribute('hidden');
+    }
+    return;
+  }
+
+  if (registrationError) {
+    registrationError.textContent = '';
+    registrationError.setAttribute('hidden', '');
+  }
+
+  if (!clientName || !plan || !validity || !expirationInput?.value) {
     return;
   }
 
@@ -97,8 +132,8 @@ registrationForm?.addEventListener('submit', (event) => {
   const heightText = Number.isFinite(height) && height > 0 ? `${height.toFixed(0)} cm` : 'Sin registrar';
   const planPrice = formatCOP(planPrices[plan] ?? 0);
 
-  const expirationDate = expiration
-    ? new Date(expiration).toLocaleDateString('es-CO', {
+  const expirationDate = expirationInput.value
+    ? new Date(expirationInput.value).toLocaleDateString('es-CO', {
         day: '2-digit',
         month: 'long',
         year: 'numeric',
@@ -137,4 +172,7 @@ registrationForm?.addEventListener('submit', (event) => {
   registrationList.prepend(entry);
   registrationEmpty?.setAttribute('hidden', '');
   registrationForm.reset();
+  if (expirationInput) {
+    expirationInput.value = '';
+  }
 });
