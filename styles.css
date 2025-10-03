@@ -280,18 +280,13 @@ section {
   gap: 2rem;
 }
 
-.staff-locked {
-  display: grid;
-  gap: 1rem;
-  color: var(--text-muted);
-}
-
 .staff-login {
   display: grid;
   gap: 1rem;
 }
 
-.staff-login__error {
+.staff-login__error,
+.staff-registration__error {
   color: #b91c1c;
   font-weight: 500;
 }
