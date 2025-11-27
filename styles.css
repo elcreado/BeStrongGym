@@ -280,18 +280,13 @@ section {
   gap: 2rem;
 }
 
-.staff-locked {
-  display: grid;
-  gap: 1rem;
-  color: var(--text-muted);
-}
-
 .staff-login {
   display: grid;
   gap: 1rem;
 }
 
-.staff-login__error {
+.staff-login__error,
+.staff-registration__error {
   color: #b91c1c;
   font-weight: 500;
 }
@@ -406,6 +401,80 @@ section {
 }
 
 .staff-log__details dd {
+  color: var(--text-muted);
+}
+
+.subscription-access {
+  background-color: var(--card-bg);
+  border-top: 1px solid var(--stroke);
+}
+
+.subscription-access__layout {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.subscription-access__card {
+  background-color: var(--card-muted);
+  border: 1px solid var(--stroke);
+  border-radius: 1rem;
+  padding: clamp(1.5rem, 3vw, 2rem);
+  max-width: 520px;
+}
+
+.subscription-login {
+  display: grid;
+  gap: 1rem;
+}
+
+.subscription-login__error {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.subscription-page {
+  background-color: var(--card-muted);
+}
+
+.subscription-dashboard .section-heading {
+  margin-bottom: 1.5rem;
+}
+
+.subscription-panels {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.subscription-panel {
+  background-color: var(--card-bg);
+  border: 1px solid var(--stroke);
+  border-radius: 1rem;
+  padding: clamp(1.5rem, 4vw, 2rem);
+  display: grid;
+  gap: 1rem;
+}
+
+.subscription-summary {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.summary-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) 2fr;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  background-color: var(--card-muted);
+  border: 1px solid var(--stroke);
+  border-radius: 0.75rem;
+}
+
+.summary-row dt {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.summary-row dd {
   color: var(--text-muted);
 }
 

@@ -180,41 +180,37 @@
 
       <section class="staff" id="personal" aria-labelledby="personal-title">
         <div class="container staff__container">
-          <div class="section-heading">
-            <h2 id="personal-title">Área del personal</h2>
-            <p>
-              Acceso exclusivo para colaboradores autorizados. Aquí podrás
-              registrar nuevas inscripciones y mantener el control de la vigencia
-              de cada plan.
-            </p>
-          </div>
           <div class="staff-card" id="staff-access">
-            <div class="staff-locked" id="staff-locked">
-              <p>Acceso restringido. Ingresa la clave para continuar.</p>
-              <button class="btn btn--primary" type="button" id="staff-login-toggle">
-                Ingresar
-              </button>
-              <form class="staff-login" id="staff-login-form" hidden>
-                <label class="form-field" for="staff-password">
-                  <span>Clave de acceso</span>
-                  <input
-                    type="password"
-                    id="staff-password"
-                    name="staff-password"
-                    autocomplete="current-password"
-                    required
-                  />
-                </label>
-                <button class="btn btn--primary" type="submit">Entrar</button>
-                <p
-                  class="form-note staff-login__error"
-                  id="staff-login-error"
-                  role="alert"
-                  aria-live="polite"
-                ></p>
-              </form>
+            <form class="staff-login" id="staff-login-form">
+              <label class="form-field" for="staff-password">
+                <span>Clave de acceso</span>
+                <input
+                  type="password"
+                  id="staff-password"
+                  name="staff-password"
+                  autocomplete="current-password"
+                  required
+                />
+              </label>
+              <button class="btn btn--primary" type="submit">Ingresar</button>
+              <p
+                class="form-note staff-login__error"
+                id="staff-login-error"
+                role="alert"
+                aria-live="polite"
+              ></p>
+            </form>
+          </div>
+          <div class="staff-card staff-card--workspace" id="staff-workspace" hidden>
+            <div class="section-heading" id="staff-intro">
+              <h2 id="personal-title">Área del personal</h2>
+              <p>
+                Acceso exclusivo para colaboradores autorizados. Aquí podrás
+                registrar nuevas inscripciones y mantener el control de la vigencia
+                de cada plan.
+              </p>
             </div>
-            <div class="staff-unlocked" id="staff-unlocked" hidden>
+            <div class="staff-unlocked" id="staff-unlocked">
               <form class="staff-registration" id="registration-form">
                 <div class="form-row">
                   <label class="form-field" for="client-name">
@@ -278,12 +274,19 @@
                   </label>
                 </div>
                 <button class="btn btn--primary" type="submit">Registrar inscripción</button>
+                <p
+                  class="form-note staff-registration__error"
+                  id="registration-error"
+                  role="alert"
+                  aria-live="polite"
+                  hidden
+                ></p>
               </form>
               <div class="staff-log">
                 <h3>Registro reciente</h3>
                 <p class="form-note">
-                  Las inscripciones registradas se mantendrán visibles mientras la
-                  página esté abierta.
+                  Las inscripciones se guardan en un archivo JSON local (navegador) y se
+                  sincronizan al iniciar sesión.
                 </p>
                 <p class="staff-log__empty" id="registration-empty">
                   Aún no hay inscripciones registradas.
@@ -291,6 +294,35 @@
                 <ul class="staff-log__list" id="registration-log" aria-live="polite"></ul>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="subscription-access" id="suscripciones" aria-labelledby="suscripciones-title">
+        <div class="container subscription-access__layout">
+          <div class="section-heading">
+            <h2 id="suscripciones-title">Acceso a gestión de suscripciones</h2>
+            <p>
+              El recepcionista es el encargado de manejar las suscripciones y validar los
+              datos de cada cliente. Inicia sesión para continuar con la gestión.
+            </p>
+          </div>
+          <div class="subscription-access__card">
+            <form class="subscription-login" id="subscription-login-form">
+              <label class="form-field" for="subscription-username">
+                <span>Nombre de usuario</span>
+                <input
+                  type="text"
+                  id="subscription-username"
+                  name="subscription-username"
+                  autocomplete="username"
+                  required
+                />
+              </label>
+              <p class="form-note">Usa tu nombre para acceder. El usuario admin es "admin123".</p>
+              <button class="btn btn--primary" type="submit">Iniciar sesión</button>
+              <p class="form-note subscription-login__error" id="subscription-login-error" role="alert" aria-live="polite"></p>
+            </form>
           </div>
         </div>
       </section>

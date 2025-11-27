@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión de suscripciones | Be Strong Gym</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="subscription-page">
+    <header class="top-bar">
+      <div class="container">
+        <h1 class="brand">Panel de Suscripciones</h1>
+        <nav class="top-nav" aria-label="Navegación secundaria">
+          <a href="index.html">Volver al sitio</a>
+          <button class="btn btn--ghost" id="logout-button" type="button">Cerrar sesión</button>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="subscription-dashboard" aria-labelledby="dashboard-title">
+        <div class="container">
+          <div class="section-heading">
+            <h2 id="dashboard-title">Gestión de clientes</h2>
+            <p>
+              Revisa la información almacenada en el archivo local de suscripciones. El usuario "admin123"
+              puede registrar o actualizar clientes; los demás solo pueden consultar su suscripción.
+            </p>
+          </div>
+
+          <div class="subscription-panels">
+            <article class="subscription-panel" id="admin-panel" hidden>
+              <h3>Registrar o actualizar suscripción</h3>
+              <form id="admin-form" class="staff-registration">
+                <div class="form-row">
+                  <label class="form-field" for="admin-client-name">
+                    <span>Nombre del cliente</span>
+                    <input type="text" id="admin-client-name" name="admin-client-name" required />
+                  </label>
+                  <label class="form-field" for="admin-client-plan">
+                    <span>Tipo de plan</span>
+                    <select id="admin-client-plan" name="admin-client-plan" required>
+                      <option value="">Selecciona una opción</option>
+                      <option value="Esencial">Plan Esencial</option>
+                      <option value="Avanzado">Plan Avanzado</option>
+                      <option value="Elite">Plan Elite</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="form-row">
+                  <label class="form-field" for="admin-client-validity">
+                    <span>Vigencia (meses)</span>
+                    <select id="admin-client-validity" name="admin-client-validity" required>
+                      <option value="">Selecciona una opción</option>
+                      <option value="1">1 mes</option>
+                      <option value="3">3 meses</option>
+                      <option value="6">6 meses</option>
+                      <option value="12">12 meses</option>
+                    </select>
+                  </label>
+                  <label class="form-field" for="admin-expiration">
+                    <span>Fecha de caducidad</span>
+                    <input type="date" id="admin-expiration" name="admin-expiration" required />
+                  </label>
+                </div>
+                <div class="form-row">
+                  <label class="form-field" for="admin-client-weight">
+                    <span>Peso (kg)</span>
+                    <input
+                      type="number"
+                      id="admin-client-weight"
+                      name="admin-client-weight"
+                      inputmode="decimal"
+                      step="0.1"
+                      min="0"
+                    />
+                  </label>
+                  <label class="form-field" for="admin-client-height">
+                    <span>Altura (cm)</span>
+                    <input
+                      type="number"
+                      id="admin-client-height"
+                      name="admin-client-height"
+                      inputmode="numeric"
+                      min="0"
+                    />
+                  </label>
+                </div>
+                <button class="btn btn--primary" type="submit">Guardar suscripción</button>
+                <p class="form-note" id="admin-form-feedback" role="alert" aria-live="polite"></p>
+              </form>
+            </article>
+
+            <article class="subscription-panel" id="client-panel" hidden>
+              <h3>Detalle de suscripción</h3>
+              <p class="form-note" id="client-panel-note"></p>
+              <dl class="subscription-summary" id="client-summary"></dl>
+            </article>
+
+            <article class="subscription-panel" id="registry-panel" hidden>
+              <h3>Suscripciones guardadas</h3>
+              <p class="form-note">Los datos se guardan en un archivo JSON local (localStorage).</p>
+              <ul class="staff-log__list" id="registry-list"></ul>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="subscription.js"></script>
+  </body>
+</html>
