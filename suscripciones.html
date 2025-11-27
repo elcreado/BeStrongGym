@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panel de suscripciones | Be Strong Gym</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="admin-page">
+    <header class="top-bar">
+      <div class="container admin-top">
+        <div class="admin-branding">
+          <a class="brand" href="index.html">Be Strong Gym</a>
+          <span class="admin-pill">Panel de suscripciones</span>
+        </div>
+        <button class="btn btn--ghost" id="admin-logout" type="button">Cerrar sesión</button>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <section class="admin-hero">
+        <div class="container">
+          <div class="section-heading">
+            <h1>Gestión centralizada de clientes</h1>
+            <p>
+              Administra la base local en formato JSON: cada suscripción registrada se guarda
+              en tu navegador para un acceso ágil. Ajusta vigencias, consulta planes y elimina
+              registros obsoletos según sea necesario.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="staff admin-panel" aria-labelledby="admin-panel-title">
+        <div class="container staff__container admin-grid">
+          <div class="staff-card staff-card--workspace">
+            <div class="section-heading">
+              <h2 id="admin-panel-title">Registrar suscripción</h2>
+              <p>Completa los datos del cliente. La fecha de caducidad se calcula sola.</p>
+            </div>
+            <form class="staff-registration" id="admin-subscription-form">
+              <div class="form-row">
+                <label class="form-field" for="admin-client-name">
+                  <span>Nombre del cliente</span>
+                  <input type="text" id="admin-client-name" name="client-name" required />
+                </label>
+                <label class="form-field" for="admin-client-plan">
+                  <span>Tipo de plan pagado</span>
+                  <select id="admin-client-plan" name="client-plan" required>
+                    <option value="">Selecciona una opción</option>
+                    <option value="Esencial">Plan Esencial</option>
+                    <option value="Avanzado">Plan Avanzado</option>
+                    <option value="Elite">Plan Elite</option>
+                  </select>
+                </label>
+              </div>
+              <div class="form-row">
+                <label class="form-field" for="admin-client-weight">
+                  <span>Peso (kg)</span>
+                  <input
+                    type="number"
+                    id="admin-client-weight"
+                    name="client-weight"
+                    inputmode="decimal"
+                    step="0.1"
+                    min="0"
+                  />
+                </label>
+                <label class="form-field" for="admin-client-height">
+                  <span>Altura (cm)</span>
+                  <input
+                    type="number"
+                    id="admin-client-height"
+                    name="client-height"
+                    inputmode="numeric"
+                    min="0"
+                  />
+                </label>
+              </div>
+              <div class="form-row">
+                <label class="form-field" for="admin-plan-validity">
+                  <span>Vigencia (meses)</span>
+                  <select id="admin-plan-validity" name="plan-validity" required>
+                    <option value="">Selecciona una opción</option>
+                    <option value="1">1 mes</option>
+                    <option value="3">3 meses</option>
+                    <option value="6">6 meses</option>
+                    <option value="12">12 meses</option>
+                  </select>
+                </label>
+                <label class="form-field" for="admin-payment-expiration">
+                  <span>Fecha de caducidad</span>
+                  <input type="date" id="admin-payment-expiration" name="payment-expiration" required />
+                </label>
+              </div>
+              <button class="btn btn--primary" type="submit">Guardar en JSON local</button>
+            </form>
+          </div>
+
+          <div class="staff-card staff-card--workspace admin-log">
+            <div class="section-heading">
+              <h2>Base local de clientes</h2>
+              <p>Los cambios se reflejan en el archivo JSON almacenado en tu navegador.</p>
+            </div>
+            <p class="staff-log__empty" id="admin-empty">Aún no hay suscripciones guardadas.</p>
+            <ul class="staff-log__list admin-log__list" id="admin-subscription-list" aria-live="polite"></ul>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="admin.js"></script>
+  </body>
+</html>

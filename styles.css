@@ -280,18 +280,13 @@ section {
   gap: 2rem;
 }
 
-.staff-locked {
-  display: grid;
-  gap: 1rem;
-  color: var(--text-muted);
-}
-
 .staff-login {
   display: grid;
   gap: 1rem;
 }
 
-.staff-login__error {
+.staff-login__error,
+.staff-registration__error {
   color: #b91c1c;
   font-weight: 500;
 }
@@ -472,6 +467,88 @@ section {
 .btn--ghost:focus-visible {
   background-color: var(--accent);
   color: #fff;
+}
+
+.reception {
+  background-color: var(--card-bg);
+  border-top: 1px solid var(--stroke);
+}
+
+.reception__container {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.reception__row {
+  gap: 1.25rem;
+}
+
+.reception__feedback {
+  margin-top: 0.5rem;
+}
+
+.admin-page {
+  background-color: var(--bg-base);
+}
+
+.admin-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+}
+
+.admin-branding {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-pill {
+  background-color: var(--card-muted);
+  color: var(--text-muted);
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.admin-main {
+  padding-bottom: 3rem;
+}
+
+.admin-hero {
+  background-color: var(--card-bg);
+  border-bottom: 1px solid var(--stroke);
+  padding: 2.5rem 0;
+}
+
+.admin-panel {
+  padding-top: 2rem;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.admin-log__list {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-log__item {
+  position: relative;
+}
+
+.admin-log__details {
+  margin-bottom: 0.75rem;
+}
+
+.admin-log__remove {
+  width: 100%;
+  margin-top: 0.5rem;
 }
 
 @media (max-width: 720px) {

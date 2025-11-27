@@ -16,32 +16,37 @@ const planPrices = {
   Elite: 90000,
 };
 
-const loginToggleButton = document.getElementById('staff-login-toggle');
+const STORAGE_KEY = 'bestrong_subscriptions';
+
+loadSubscriptions();
+
+const loadSubscriptions = () => {
+  const rawData = localStorage.getItem(STORAGE_KEY);
+  if (!rawData) {
+    localStorage.setItem(STORAGE_KEY, '[]');
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(rawData);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.warn('No se pudo leer el archivo local de suscripciones', error);
+    return [];
+  }
+};
+
+const saveSubscriptions = (entries) => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+};
+
 const loginForm = document.getElementById('staff-login-form');
 const passwordInput = document.getElementById('staff-password');
 const loginError = document.getElementById('staff-login-error');
-const lockedPanel = document.getElementById('staff-locked');
-const unlockedPanel = document.getElementById('staff-unlocked');
-
-loginToggleButton?.addEventListener('click', () => {
-  if (!loginForm) {
-    return;
-  }
-
-  const isHidden = loginForm.hasAttribute('hidden');
-  if (isHidden) {
-    loginForm.removeAttribute('hidden');
-    passwordInput?.focus();
-  } else {
-    loginForm.setAttribute('hidden', '');
-    if (loginError) {
-      loginError.textContent = '';
-    }
-    if (passwordInput) {
-      passwordInput.value = '';
-    }
-  }
-});
+const staffAccessCard = document.getElementById('staff-access');
+const staffWorkspace = document.getElementById('staff-workspace');
+const staffIntro = document.getElementById('staff-intro');
+let isStaffAuthenticated = false;
 
 loginForm?.addEventListener('submit', (event) => {
   event.preventDefault();
@@ -55,16 +60,24 @@ loginForm?.addEventListener('submit', (event) => {
     if (loginError) {
       loginError.textContent = '';
     }
-    loginForm.setAttribute('hidden', '');
-    lockedPanel?.setAttribute('hidden', '');
-    unlockedPanel?.removeAttribute('hidden');
+    isStaffAuthenticated = true;
+    staffAccessCard?.setAttribute('hidden', '');
+    staffWorkspace?.removeAttribute('hidden');
+    staffIntro?.removeAttribute('hidden');
+    if (registrationError) {
+      registrationError.textContent = '';
+      registrationError.setAttribute('hidden', '');
+    }
     loginForm.reset();
     passwordInput.value = '';
     document.getElementById('client-name')?.focus();
+    const storedEntries = loadSubscriptions();
+    renderRegistrationLog(storedEntries);
   } else {
     if (loginError) {
       loginError.textContent = 'Clave incorrecta. Inténtalo nuevamente.';
     }
+    isStaffAuthenticated = false;
     passwordInput.focus();
     passwordInput.select();
   }
@@ -73,6 +86,87 @@ loginForm?.addEventListener('submit', (event) => {
 const registrationForm = document.getElementById('registration-form');
 const registrationList = document.getElementById('registration-log');
 const registrationEmpty = document.getElementById('registration-empty');
+const planValiditySelect = document.getElementById('plan-validity');
+const expirationInput = document.getElementById('payment-expiration');
+const registrationError = document.getElementById('registration-error');
+
+const renderRegistrationLog = (entries) => {
+  if (!registrationList || !registrationEmpty) {
+    return;
+  }
+
+  registrationList.innerHTML = '';
+
+  if (!entries.length) {
+    registrationEmpty.removeAttribute('hidden');
+    return;
+  }
+
+  registrationEmpty.setAttribute('hidden', '');
+
+  entries
+    .slice()
+    .reverse()
+    .forEach((entry) => {
+      const item = document.createElement('li');
+      item.className = 'staff-log__item';
+      item.innerHTML = `
+        <div class="staff-log__header">
+          <h4>${entry.name}</h4>
+          <span class="staff-log__plan">${entry.plan} · ${formatCOP(planPrices[entry.plan] ?? 0)}</span>
+        </div>
+        <dl class="staff-log__details">
+          <div>
+            <dt>Peso</dt>
+            <dd>${entry.weightText}</dd>
+          </div>
+          <div>
+            <dt>Altura</dt>
+            <dd>${entry.heightText}</dd>
+          </div>
+          <div>
+            <dt>Vigencia</dt>
+            <dd>${entry.validityText}</dd>
+          </div>
+          <div>
+            <dt>Caducidad</dt>
+            <dd>${entry.expirationDate}</dd>
+          </div>
+        </dl>
+      `;
+
+      registrationList.appendChild(item);
+    });
+};
+
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+const todayISO = today.toISOString().split('T')[0];
+
+if (expirationInput) {
+  expirationInput.setAttribute('readonly', '');
+  expirationInput.setAttribute('min', todayISO);
+}
+
+const updateExpirationDate = () => {
+  if (!planValiditySelect || !expirationInput) {
+    return;
+  }
+
+  const months = Number(planValiditySelect.value);
+
+  if (!Number.isFinite(months) || months <= 0) {
+    expirationInput.value = '';
+    return;
+  }
+
+  const baseDate = new Date();
+  baseDate.setHours(0, 0, 0, 0);
+  baseDate.setMonth(baseDate.getMonth() + months);
+  expirationInput.value = baseDate.toISOString().split('T')[0];
+};
+
+planValiditySelect?.addEventListener('change', updateExpirationDate);
 
 registrationForm?.addEventListener('submit', (event) => {
   event.preventDefault();
@@ -87,9 +181,25 @@ registrationForm?.addEventListener('submit', (event) => {
   const weight = Number(formData.get('client-weight') ?? 0);
   const height = Number(formData.get('client-height') ?? 0);
   const validity = String(formData.get('plan-validity') ?? '');
-  const expiration = String(formData.get('payment-expiration') ?? '');
 
-  if (!clientName || !plan || !validity || !expiration) {
+  if (!expirationInput?.value) {
+    updateExpirationDate();
+  }
+
+  if (!isStaffAuthenticated) {
+    if (registrationError) {
+      registrationError.textContent = 'Debes autenticarte para registrar inscripciones.';
+      registrationError.removeAttribute('hidden');
+    }
+    return;
+  }
+
+  if (registrationError) {
+    registrationError.textContent = '';
+    registrationError.setAttribute('hidden', '');
+  }
+
+  if (!clientName || !plan || !validity || !expirationInput?.value) {
     return;
   }
 
@@ -97,8 +207,8 @@ registrationForm?.addEventListener('submit', (event) => {
   const heightText = Number.isFinite(height) && height > 0 ? `${height.toFixed(0)} cm` : 'Sin registrar';
   const planPrice = formatCOP(planPrices[plan] ?? 0);
 
-  const expirationDate = expiration
-    ? new Date(expiration).toLocaleDateString('es-CO', {
+  const expirationDate = expirationInput.value
+    ? new Date(expirationInput.value).toLocaleDateString('es-CO', {
         day: '2-digit',
         month: 'long',
         year: 'numeric',
@@ -136,5 +246,61 @@ registrationForm?.addEventListener('submit', (event) => {
 
   registrationList.prepend(entry);
   registrationEmpty?.setAttribute('hidden', '');
+
+  const storedEntries = loadSubscriptions();
+  storedEntries.push({
+    name: clientName,
+    plan,
+    weightText,
+    heightText,
+    validityText,
+    expirationDate,
+  });
+  saveSubscriptions(storedEntries);
   registrationForm.reset();
+  if (expirationInput) {
+    expirationInput.value = '';
+  }
+});
+
+const publicLoginForm = document.getElementById('public-login-form');
+const publicNameInput = document.getElementById('public-name');
+const publicPasswordInput = document.getElementById('public-password');
+const publicLoginFeedback = document.getElementById('public-login-feedback');
+
+publicLoginForm?.addEventListener('submit', (event) => {
+  event.preventDefault();
+
+  if (!publicNameInput || !publicLoginFeedback) {
+    return;
+  }
+
+  const username = publicNameInput.value.trim();
+  const password = (publicPasswordInput?.value ?? '').trim();
+
+  if (!username) {
+    publicLoginFeedback.textContent = 'Ingresa tu nombre para continuar.';
+    return;
+  }
+
+  if (password === 'admin123') {
+    publicLoginFeedback.textContent = 'Acceso de administrador concedido. Redirigiendo…';
+    localStorage.setItem('bestrong_admin_session', 'true');
+    setTimeout(() => {
+      window.location.href = 'suscripciones.html';
+    }, 300);
+    return;
+  }
+
+  localStorage.removeItem('bestrong_admin_session');
+  const existingClients = loadSubscriptions();
+  const foundClient = existingClients.find(
+    (entry) => entry.name?.toLowerCase() === username.toLowerCase(),
+  );
+
+  if (foundClient) {
+    publicLoginFeedback.textContent = `${username} encontrado. Tu plan registrado es ${foundClient.plan}.`;
+  } else {
+    publicLoginFeedback.textContent = `No se encontró el usuario ${username}. Solicita apoyo en recepción.`;
+  }
 });
