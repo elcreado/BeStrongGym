@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Camila Torres",
+    "plan": "Avanzado",
+    "weight": 68,
+    "height": 168,
+    "validityDays": 14,
+    "validityLabel": "2 semanas",
+    "paymentExpiration": "2025-01-31T00:00:00.000Z",
+    "createdAt": "2025-01-17T10:00:00.000Z"
+  },
+  {
+    "name": "Juan Esteban",
+    "plan": "Esencial",
+    "weight": 82,
+    "height": 175,
+    "validityDays": 7,
+    "validityLabel": "1 semana",
+    "paymentExpiration": "2025-01-22T00:00:00.000Z",
+    "createdAt": "2025-01-15T09:30:00.000Z"
+  }
+]

@@ -1,175 +1,77 @@
-import { useMemo, useState } from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter, Link, Route, Routes, useLocation } from 'react-router-dom';
+import Home from './pages/Home.jsx';
+import IniciarSesion from './pages/IniciarSesion.jsx';
+import Staff from './pages/Staff.jsx';
 
-const plans = [
-  {
-    id: 'esencial',
-    name: 'Plan Esencial',
-    price: 29,
-    description: 'Perfecto para dar tus primeros pasos y mantenerte activo con supervisión experta.',
-    features: ['Acceso ilimitado a sala de musculación', 'Clases grupales básicas', 'Evaluación física inicial'],
-  },
-  {
-    id: 'intenso',
-    name: 'Plan Intenso',
-    price: 49,
-    description: 'Eleva tu rendimiento con entrenamientos personalizados y seguimiento continuo.',
-    features: [
-      'Todo lo incluido en Plan Esencial',
-      'Rutinas personalizadas por objetivos',
-      'Seguimiento nutricional mensual',
-      'Reservas prioritarias en clases especiales',
-    ],
-    badge: 'Más popular',
-  },
-  {
-    id: 'elite',
-    name: 'Plan Elite',
-    price: 79,
-    description: 'La experiencia Be Strong definitiva con acompañamiento total y beneficios VIP.',
-    features: [
-      'Acceso ilimitado 24/7 y zonas premium',
-      'Sesiones semanales con entrenador personal',
-      'Plan nutricional avanzado y biometría',
-      'Invitaciones exclusivas a eventos Be Strong',
-    ],
-  },
-];
+function Layout({ children }) {
+  const location = useLocation();
+  const currentYear = new Date().getFullYear();
 
-function PlanCard({ plan, onSelect }) {
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (location.hash) {
+      const targetId = location.hash.replace('#', '');
+      const element = document.getElementById(targetId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [location]);
+
   return (
-    <article className="plan-card">
-      {plan.badge ? <span className="plan-badge">{plan.badge}</span> : null}
-      <h3>{plan.name}</h3>
-      <p>{plan.description}</p>
-      <p className="plan-price">
-        <span style={{ fontSize: '1rem', color: '#a1a1a1' }}>€</span>
-        {plan.price}
-        <span style={{ fontSize: '1rem', color: '#a1a1a1' }}>/mes</span>
-      </p>
-      <ul className="plan-features">
-        {plan.features.map((feature) => (
-          <li key={feature}>{feature}</li>
-        ))}
-      </ul>
-      <button className="primary-btn" onClick={() => onSelect(plan)}>
-        Elegir este plan
-      </button>
-    </article>
-  );
-}
-
-function CurrentSubscription({ subscription }) {
-  if (!subscription) {
-    return (
-      <div className="subscription-card">
-        <span className="status-tag">Sin suscripción</span>
-        <div className="subscription-summary">
-          <strong>Aún no te has unido a la familia Be Strong</strong>
-          <p>
-            Elige uno de nuestros planes para disfrutar de entrenamientos diseñados para superar tus límites,
-            clases dinámicas y el acompañamiento del equipo Be Strong Gym.
-          </p>
+    <>
+      <header className="top-bar">
+        <div className="container">
+          <h1 className="brand">Be Strong Gym</h1>
+          <nav className="top-nav" aria-label="Principal">
+            <Link to="/#nosotros">Nosotros</Link>
+            <Link to="/#planes">Planes</Link>
+            <Link to="/#contacto">Contacto</Link>
+            <Link to="/staff">Staff</Link>
+            <Link to="/iniciar-sesion">Acceso</Link>
+          </nav>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="subscription-card">
-      <span className="status-tag">Activa</span>
-      <div className="subscription-summary">
-        <strong>{subscription.name}</strong>
-        <p>
-          Tu cuota mensual es de <span style={{ color: 'var(--color-accent)' }}>€{subscription.price}</span> e
-          incluye:
-        </p>
-        <ul className="plan-features">
-          {subscription.features.map((feature) => (
-            <li key={feature}>{feature}</li>
-          ))}
-        </ul>
-        <p>
-          Puedes cambiar de plan en cualquier momento. Nuestro equipo está listo para ayudarte a alcanzar tu mejor
-          versión.
-        </p>
-      </div>
-    </div>
+      </header>
+      <main>{children}</main>
+      <footer className="footer">
+        <div className="container footer__layout">
+          <p>&copy; {currentYear} Be Strong Gym. Fuerza con proposito.</p>
+          <div className="footer__links">
+            <Link to="/#nosotros">Nosotros</Link>
+            <Link to="/#planes">Planes</Link>
+            <Link to="/#contacto">Contacto</Link>
+            <a href="mailto:hola@bestronggym.com">Contacto directo</a>
+          </div>
+        </div>
+      </footer>
+    </>
   );
 }
 
-function FakePayment({ plan, onConfirm, onCancel }) {
-  if (!plan) return null;
-
+function NotFound() {
   return (
-    <div className="payment-placeholder">
-      <div>
-        <h3>Simulador de pago Be Strong</h3>
-        <p>
-          Este es un paso de demostración para validar el flujo de suscripción. No se realizará ningún cargo real.
-          Puedes continuar para activar el plan <strong>{plan.name}</strong> o cancelar para seguir explorando.
-        </p>
-      </div>
-      <div className="payment-actions">
-        <button className="primary-btn" onClick={() => onConfirm(plan)}>
-          Confirmar pago ficticio
-        </button>
-        <button className="secondary-btn" onClick={onCancel}>
-          Cancelar
-        </button>
-      </div>
-    </div>
+    <section className="container" style={{ padding: '4rem 0' }}>
+      <h2>Pagina no encontrada</h2>
+      <p>La direccion solicitada no existe. Regresa al inicio para seguir explorando.</p>
+      <Link className="btn btn--primary" to="/">
+        Volver al inicio
+      </Link>
+    </section>
   );
 }
 
 function App() {
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [currentSubscription, setCurrentSubscription] = useState(null);
-
-  const planHighlights = useMemo(
-    () => [
-      {
-        title: 'Entrena sin límites',
-        description:
-          'Instalaciones renovadas con equipamiento de última generación, zonas funcionales y espacios para cada objetivo.',
-      },
-      {
-        title: 'Estrategia personalizada',
-        description:
-          'Evaluaciones periódicas, seguimiento profesional y rutinas adaptadas para que avances con seguridad.',
-      },
-      {
-        title: 'Comunidad Be Strong',
-        description:
-          'Eventos exclusivos, workshops y retos mensuales que te mantienen motivado rodeado de la mejor energía.',
-      },
-    ],
-    [],
-  );
-
-  const handleSelectPlan = (plan) => {
-    setSelectedPlan(plan);
-  };
-
-  const handleConfirmPayment = (plan) => {
-    setCurrentSubscription(plan);
-    setSelectedPlan(null);
-  };
-
-  const handleCancelPayment = () => {
-    setSelectedPlan(null);
-  };
-
   return (
     <BrowserRouter>
-      {/* <Layout> es opcional, si no existe, quítalo */}
-      <Layout> 
+      <Layout>
         <Routes>
-          {/* Asegúrate de que los nombres de los componentes coincidan con tus importaciones */}
           <Route path="/" element={<Home />} />
           <Route path="/staff" element={<Staff />} />
-          <Route path="/iniciarSesion" element={<IniciarSesion />} />
-          <Route path="*" element={<div>Página no encontrada (404)</div>} />
+          <Route path="/iniciar-sesion" element={<IniciarSesion />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>
     </BrowserRouter>
