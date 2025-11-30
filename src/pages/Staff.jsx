@@ -10,6 +10,12 @@ const planPrices = {
   Elite: 90000,
 };
 
+const PLAN_DURATION = {
+  Esencial: { days: 7, label: '1 semana' },
+  Avanzado: { days: 14, label: '2 semanas' },
+  Elite: { days: 28, label: '4 semanas / 1 mes' },
+};
+
 const normalizeName = (value) => value.trim().toLowerCase();
 
 const formatCurrency = (value) =>
@@ -28,9 +34,26 @@ const formatDate = (value) =>
       })
     : 'Sin fecha';
 
-const today = new Date();
-today.setHours(0, 0, 0, 0);
-const todayISO = today.toISOString().split('T')[0];
+const formatValidity = (client) => {
+  if (client?.validityLabel) {
+    return client.validityLabel;
+  }
+
+  if (Number.isFinite(client?.validityDays)) {
+    const days = client.validityDays;
+    if (days % 7 === 0) {
+      const weeks = days / 7;
+      return `${weeks} ${weeks === 1 ? 'semana' : 'semanas'}`;
+    }
+    return `${days} ${days === 1 ? 'dia' : 'dias'}`;
+  }
+
+  if (Number.isFinite(client?.validityMonths)) {
+    return `${client.validityMonths} ${client.validityMonths === 1 ? 'mes' : 'meses'}`;
+  }
+
+  return 'Sin vigencia';
+};
 
 function Staff() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -45,8 +68,6 @@ function Staff() {
     plan: '',
     weight: '',
     height: '',
-    validityMonths: '',
-    paymentExpiration: '',
   });
 
   const sortedClients = useMemo(
@@ -78,30 +99,12 @@ function Staff() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleValidityChange = (value) => {
-    const months = Number(value);
-    let paymentExpiration = '';
-    if (Number.isFinite(months) && months > 0) {
-      const baseDate = new Date();
-      baseDate.setHours(0, 0, 0, 0);
-      baseDate.setMonth(baseDate.getMonth() + months);
-      paymentExpiration = baseDate.toISOString().split('T')[0];
-    }
-    setFormData((prev) => ({
-      ...prev,
-      validityMonths: value,
-      paymentExpiration,
-    }));
-  };
-
   const resetForm = () => {
     setFormData({
       name: '',
       plan: '',
       weight: '',
       height: '',
-      validityMonths: '',
-      paymentExpiration: '',
     });
   };
 
@@ -115,26 +118,47 @@ function Staff() {
 
     const name = formData.name.trim();
     const plan = formData.plan.trim();
-    const validityMonths = Number(formData.validityMonths);
-    const paymentExpiration = formData.paymentExpiration.trim();
-    if (!name || !plan || !validityMonths || !paymentExpiration) {
+    const duration = PLAN_DURATION[plan];
+    const weight = Number(formData.weight);
+    const height = Number(formData.height);
+
+    if (!name || !plan) {
       setRegistrationError('Completa los campos obligatorios para guardar el registro.');
+      setRegistrationMessage('');
+      return;
+    }
+
+    if (!duration) {
+      setRegistrationError('Selecciona un plan valido.');
+      setRegistrationMessage('');
+      return;
+    }
+
+    if (!Number.isFinite(weight) || weight <= 0 || !Number.isFinite(height) || height <= 0) {
+      setRegistrationError('Peso y Altura son obligatorios y deben ser valores validos.');
       setRegistrationMessage('');
       return;
     }
 
     setRegistrationError('');
     try {
+      const createdAt = new Date();
+      const expirationDate = new Date(createdAt);
+      expirationDate.setDate(expirationDate.getDate() + duration.days);
+
       await upsertClient({
         name,
         plan,
-        weight: Number.isFinite(Number(formData.weight)) ? Number(formData.weight) : undefined,
-        height: Number.isFinite(Number(formData.height)) ? Number(formData.height) : undefined,
-        validityMonths,
-        paymentExpiration,
-        createdAt: new Date().toISOString(),
+        weight,
+        height,
+        validityDays: duration.days,
+        validityLabel: duration.label,
+        paymentExpiration: expirationDate.toISOString(),
+        createdAt: createdAt.toISOString(),
       });
-      setRegistrationMessage('Cliente guardado en el archivo local.');
+      setRegistrationMessage(
+        `Cliente guardado. Vigencia: ${duration.label}. Caduca el ${formatDate(expirationDate.toISOString())}.`,
+      );
       resetForm();
       await fetchClients();
     } catch (error) {
@@ -239,9 +263,9 @@ function Staff() {
                         inputMode="decimal"
                         step="0.1"
                         min="0"
-                        placeholder="Opcional"
                         value={formData.weight}
                         onChange={(event) => handleFieldChange('weight', event.target.value)}
+                        required
                       />
                     </label>
                     <label className="form-field">
@@ -250,34 +274,8 @@ function Staff() {
                         type="number"
                         inputMode="numeric"
                         min="0"
-                        placeholder="Opcional"
                         value={formData.height}
                         onChange={(event) => handleFieldChange('height', event.target.value)}
-                      />
-                    </label>
-                  </div>
-                  <div className="form-row">
-                    <label className="form-field">
-                      <span>Vigencia (meses)</span>
-                      <select
-                        value={formData.validityMonths}
-                        onChange={(event) => handleValidityChange(event.target.value)}
-                        required
-                      >
-                        <option value="">Selecciona una opcion</option>
-                        <option value="1">1 mes</option>
-                        <option value="3">3 meses</option>
-                        <option value="6">6 meses</option>
-                        <option value="12">12 meses</option>
-                      </select>
-                    </label>
-                    <label className="form-field">
-                      <span>Fecha de caducidad de pago</span>
-                      <input
-                        type="date"
-                        min={todayISO}
-                        value={formData.paymentExpiration}
-                        onChange={(event) => handleFieldChange('paymentExpiration', event.target.value)}
                         required
                       />
                     </label>
@@ -310,9 +308,7 @@ function Staff() {
                       {sortedClients.map((client) => {
                         const weight = Number.isFinite(client.weight) ? `${client.weight} kg` : 'Sin registrar';
                         const height = Number.isFinite(client.height) ? `${client.height} cm` : 'Sin registrar';
-                        const validity = client.validityMonths
-                          ? `${client.validityMonths} ${client.validityMonths === 1 ? 'mes' : 'meses'}`
-                          : 'Sin vigencia';
+                        const validity = formatValidity(client);
                         return (
                           <li
                             className="staff-log__item"

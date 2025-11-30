@@ -4,17 +4,19 @@
     "plan": "Avanzado",
     "weight": 68,
     "height": 168,
-    "validityMonths": 3,
-    "paymentExpiration": "2025-01-31",
-    "createdAt": "2024-06-15T10:00:00.000Z"
+    "validityDays": 14,
+    "validityLabel": "2 semanas",
+    "paymentExpiration": "2025-01-31T00:00:00.000Z",
+    "createdAt": "2025-01-17T10:00:00.000Z"
   },
   {
     "name": "Juan Esteban",
     "plan": "Esencial",
     "weight": 82,
     "height": 175,
-    "validityMonths": 1,
-    "paymentExpiration": "2024-12-15",
-    "createdAt": "2024-06-05T09:30:00.000Z"
+    "validityDays": 7,
+    "validityLabel": "1 semana",
+    "paymentExpiration": "2025-01-22T00:00:00.000Z",
+    "createdAt": "2025-01-15T09:30:00.000Z"
   }
 ]

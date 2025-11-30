@@ -25,6 +25,27 @@ const formatDate = (value) =>
 
 const normalizeName = (value) => value.trim().toLowerCase();
 
+const formatValidity = (client) => {
+  if (client?.validityLabel) {
+    return client.validityLabel;
+  }
+
+  if (Number.isFinite(client?.validityDays)) {
+    const days = client.validityDays;
+    if (days % 7 === 0) {
+      const weeks = days / 7;
+      return `${weeks} ${weeks === 1 ? 'semana' : 'semanas'}`;
+    }
+    return `${days} ${days === 1 ? 'dia' : 'dias'}`;
+  }
+
+  if (Number.isFinite(client?.validityMonths)) {
+    return `${client.validityMonths} ${client.validityMonths === 1 ? 'mes' : 'meses'}`;
+  }
+
+  return 'Sin vigencia definida';
+};
+
 function IniciarSesion() {
   const [clientName, setClientName] = useState('');
   const [client, setClient] = useState(null);
@@ -62,9 +83,7 @@ function IniciarSesion() {
 
   const weightText = Number.isFinite(client?.weight) ? `${client.weight} kg` : 'Sin registrar';
   const heightText = Number.isFinite(client?.height) ? `${client.height} cm` : 'Sin registrar';
-  const validityText = client?.validityMonths
-    ? `${client.validityMonths} ${client.validityMonths === 1 ? 'mes' : 'meses'}`
-    : 'Sin vigencia definida';
+  const validityText = client ? formatValidity(client) : 'Sin vigencia definida';
   const expirationText = formatDate(client?.paymentExpiration);
 
   return (
