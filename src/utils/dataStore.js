@@ -1,5 +1,5 @@
 const STORAGE_KEY = 'bestronggym.clients';
-const DATA_URL = './data/clients.json';
+const DATA_URL = '/data/clients.json';
 let cachedClients = null;
 
 const normalizeName = (value) => value?.trim().toLowerCase() ?? '';
