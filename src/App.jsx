@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 const plans = [
   {
@@ -160,62 +161,18 @@ function App() {
   };
 
   return (
-    <main>
-      <section className="hero">
-        <p className="section-title">Be Strong Gym</p>
-        <h1>Gestión de suscripciones</h1>
-        <p>
-          Evoluciona tu entrenamiento con un ecosistema diseñado para inspirarte. En Be Strong Gym combinamos
-          tecnología, asesoramiento humano y un ambiente premium para que cada sesión cuente.
-        </p>
-        <div className="actions">
-          <button className="primary-btn" onClick={() => window.scrollTo({ top: 600, behavior: 'smooth' })}>
-            Explorar planes
-          </button>
-          <button className="secondary-btn" onClick={() => window.scrollTo({ top: 1200, behavior: 'smooth' })}>
-            Ver mi suscripción
-          </button>
-        </div>
-      </section>
-
-      <section>
-        <p className="section-title">¿Por qué Be Strong?</p>
-        <div className="features-grid">
-          {planHighlights.map((highlight) => (
-            <article className="feature-card" key={highlight.title}>
-              <div className="feature-icon">BS</div>
-              <h3>{highlight.title}</h3>
-              <p>{highlight.description}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="plans-section" id="planes">
-        <p className="section-title">Planes disponibles</p>
-        <div className="plans-grid">
-          {plans.map((plan) => (
-            <PlanCard key={plan.id} plan={plan} onSelect={handleSelectPlan} />
-          ))}
-        </div>
-      </section>
-
-      <section className="subscription-section" id="suscripcion">
-        <p className="section-title">Mi suscripción</p>
-        <CurrentSubscription subscription={currentSubscription} />
-        <FakePayment plan={selectedPlan} onConfirm={handleConfirmPayment} onCancel={handleCancelPayment} />
-      </section>
-
-      <section className="footer">
-        <p>
-          ¿Tienes dudas? Escríbenos a{' '}
-          <a href="mailto:hola@bestronggym.com" style={{ color: 'var(--color-accent)' }}>
-            hola@bestronggym.com
-          </a>{' '}
-          o visítanos en nuestro club central en el corazón de la ciudad.
-        </p>
-      </section>
-    </main>
+    <BrowserRouter>
+      {/* <Layout> es opcional, si no existe, quítalo */}
+      <Layout> 
+        <Routes>
+          {/* Asegúrate de que los nombres de los componentes coincidan con tus importaciones */}
+          <Route path="/" element={<Home />} />
+          <Route path="/staff" element={<Staff />} />
+          <Route path="/iniciarSesion" element={<IniciarSesion />} />
+          <Route path="*" element={<div>Página no encontrada (404)</div>} />
+        </Routes>
+      </Layout>
+    </BrowserRouter>
   );
 }
 
