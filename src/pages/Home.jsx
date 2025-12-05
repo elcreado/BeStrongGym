@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { loadMemberships } from '../utils/dataStore.js';
 
 const stats = [
   { label: 'Clases semanales', value: '+45' },
@@ -18,33 +20,6 @@ const focusCards = [
   {
     title: 'Seguimiento inteligente',
     description: 'Reportes de progreso mensuales y ajustes de rutina basados en tus metricas reales.',
-  },
-];
-
-const plans = [
-  {
-    id: 'esencial',
-    name: 'Plan Esencial',
-    priceText: '$45.000',
-    badge: null,
-    features: ['Acceso ilimitado a sala de pesas', '2 evaluaciones fisicas al anio', 'Clases grupales base'],
-    note: 'Solicita tu inscripcion en recepcion.',
-  },
-  {
-    id: 'avanzado',
-    name: 'Plan Avanzado',
-    priceText: '$65.000',
-    badge: 'Recomendado',
-    features: ['Clases ilimitadas de alta intensidad', 'Plan nutricional personalizado', 'Evaluacion mensual con entrenador'],
-    note: 'El equipo de recepcion completara tu registro.',
-  },
-  {
-    id: 'elite',
-    name: 'Plan Elite',
-    priceText: '$90.000',
-    badge: null,
-    features: ['Entrenador personal dedicado', 'Sesiones premium de fisioterapia', 'Acceso VIP a eventos especiales'],
-    note: 'Reserva tu cupo directamente en nuestras instalaciones.',
   },
 ];
 
@@ -86,6 +61,56 @@ const visitCards = [
 ];
 
 function Home() {
+  const [plans, setPlans] = useState([]);
+  const [startIndex, setStartIndex] = useState(0);
+
+  useEffect(() => {
+    const fetchPlans = async () => {
+      const data = await loadMemberships();
+
+      const formatCurrency = (val) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(val);
+
+      const mappedPlans = data.map(m => ({
+        id: m.name,
+        name: m.name,
+        priceText: formatCurrency(m.price),
+        badge: m.recommended ? 'Recomendado' : null,
+        features: [
+          `Vigencia de ${m.durationDays} dias`,
+          'Acceso completo a instalaciones',
+          'Seguimiento digital incluido'
+        ],
+        note: 'Solicita tu inscripcion en recepcion.'
+      }));
+      setPlans(mappedPlans);
+    };
+    fetchPlans();
+  }, []);
+
+  const handleNext = () => {
+    if (plans.length <= 3) return;
+    setStartIndex((prev) => {
+      const nextIndex = prev + 3;
+      // Clamp to show the last 3 items if steps go beyond
+      if (nextIndex + 3 > plans.length) {
+        return Math.max(0, plans.length - 3);
+      }
+      return nextIndex;
+    });
+  };
+
+  const handlePrev = () => {
+    setStartIndex((prev) => Math.max(prev - 3, 0));
+  };
+
+  // Logic: We render ALL plans in a horizontal track, and transform the track to show the correct view.
+  // View is 3 items wide.
+  // Transform percentage: -1 * startIndex * (100% / 3).
+  // Why? Because each item is 33.33% wide. Moving by 1 item moves 33.33%.
+  const trackTransform = `translateX(-${startIndex * (100 / 3)}%)`;
+
+  const isAtEnd = startIndex + 3 >= plans.length || (plans.length > 3 && startIndex >= plans.length - 3);
+
   return (
     <>
       <section className="hero" id="nosotros">
@@ -138,30 +163,59 @@ function Home() {
               instalaciones.
             </p>
           </div>
-          <div className="plans__grid">
-            {plans.map((plan) => (
-              <article
-                className={`plan-card${plan.badge ? ' plan-card--featured' : ''}`}
-                key={plan.id}
-                data-plan={plan.name}
-                data-price={plan.priceText}
+
+          <div className="carousel-container">
+            {plans.length > 3 && (
+              <button
+                className="carousel-btn"
+                onClick={handlePrev}
+                disabled={startIndex === 0}
+                aria-label="Anterior"
               >
-                <header>
-                  {plan.badge ? <div className="plan-card__badge">{plan.badge}</div> : null}
-                  <h3>{plan.name}</h3>
-                  <p className="plan-card__price">
-                    {plan.priceText} <span>COP / mes</span>
-                  </p>
-                </header>
-                <ul>
-                  {plan.features.map((feature) => (
-                    <li key={feature}>{feature}</li>
-                  ))}
-                </ul>
-                <p className="plan-card__note">{plan.note}</p>
-              </article>
-            ))}
+                &#8249;
+              </button>
+            )}
+
+            <div className="carousel-viewport">
+              <div className="plans__track" style={{ transform: trackTransform }}>
+                {plans.map((plan) => (
+                  <div className="plan-card-wrapper" key={plan.id}>
+                    <article
+                      className={`plan-card${plan.badge ? ' plan-card--featured' : ''}`}
+                      data-plan={plan.name}
+                      data-price={plan.priceText}
+                    >
+                      <header>
+                        {plan.badge ? <div className="plan-card__badge">{plan.badge}</div> : null}
+                        <h3>{plan.name}</h3>
+                        <p className="plan-card__price">
+                          {plan.priceText} <span>COP / mes</span>
+                        </p>
+                      </header>
+                      <ul>
+                        {plan.features.map((feature) => (
+                          <li key={feature}>{feature}</li>
+                        ))}
+                      </ul>
+                      <p className="plan-card__note">{plan.note}</p>
+                    </article>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {plans.length > 3 && (
+              <button
+                className="carousel-btn"
+                onClick={handleNext}
+                disabled={isAtEnd}
+                aria-label="Siguiente"
+              >
+                &#8250;
+              </button>
+            )}
           </div>
+
         </div>
       </section>
 

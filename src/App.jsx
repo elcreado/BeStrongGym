@@ -25,7 +25,7 @@ function Layout({ children }) {
     <>
       <header className="top-bar">
         <div className="container">
-          <h1 className="brand">Be Strong Gym</h1>
+          <h1 className="brand"><Link to="/">Be Strong Gym</Link></h1>
           <nav className="top-nav" aria-label="Principal">
             <Link to="/#nosotros">Nosotros</Link>
             <Link to="/#planes">Planes</Link>
