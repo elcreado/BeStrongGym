@@ -1,11 +1,7 @@
 import { useState } from 'react';
-import { loadClients } from '../utils/dataStore.js';
+import { loadClients, loadMemberships } from '../utils/dataStore.js';
 
-const planPrices = {
-  Esencial: 45000,
-  Avanzado: 65000,
-  Elite: 90000,
-};
+// planPrices removed in favor of dynamic lookup
 
 const formatCurrency = (value) =>
   new Intl.NumberFormat('es-CO', {
@@ -17,10 +13,10 @@ const formatCurrency = (value) =>
 const formatDate = (value) =>
   value
     ? new Date(value).toLocaleDateString('es-CO', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-      })
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    })
     : 'Sin fecha registrada';
 
 const normalizeName = (value) => value.trim().toLowerCase();
@@ -51,6 +47,7 @@ function IniciarSesion() {
   const [client, setClient] = useState(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [memberships, setMemberships] = useState([]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -64,7 +61,12 @@ function IniciarSesion() {
     setIsLoading(true);
     setError('');
     try {
-      const clients = await loadClients({ refresh: true });
+      const [clientsData, membershipsData] = await Promise.all([
+        loadClients({ refresh: true }),
+        loadMemberships({ refresh: true }),
+      ]);
+      setMemberships(membershipsData);
+      const clients = clientsData;
       const found = clients.find((entry) => normalizeName(entry.name || '') === normalizeName(value));
       if (!found) {
         setClient(null);
@@ -132,7 +134,11 @@ function IniciarSesion() {
               <p className="form-note">Hola {client.name}, estos son los datos encontrados en el archivo local.</p>
               <div className="user-plan__header">
                 <h3>{client.plan || 'Plan no asignado'}</h3>
-                <span className="user-plan__price">{formatCurrency(planPrices[client.plan] ?? 0)}</span>
+                <span className="user-plan__price">
+                  {formatCurrency(
+                    memberships.find((m) => normalizeName(m.name) === normalizeName(client.plan || ''))?.price ?? 0
+                  )}
+                </span>
               </div>
               <dl className="user-plan__details">
                 <div>

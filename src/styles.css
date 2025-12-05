@@ -56,6 +56,13 @@ img {
   font-size: 1.5rem;
   font-weight: 600;
   letter-spacing: 0.02em;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand a {
+  color: inherit;
+  text-decoration: none;
 }
 
 .top-nav {
@@ -172,11 +179,71 @@ section {
   max-width: 60ch;
 }
 
-.plans__grid {
-  display: grid;
-  gap: 1.75rem;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+/* Carousel Styles with Animation */
+.carousel-viewport {
+  overflow: hidden;
+  width: 100%;
+  margin: 0 -0.875rem;
+  /* Offset the padding of the wrappers to align with container */
+  padding: 1rem 0;
+  /* Vertical space for hover effects */
+  width: calc(100% + 1.75rem);
 }
+
+.plans__track {
+  display: flex;
+  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  /* Smooth ease-out */
+  width: 100%;
+}
+
+.plan-card-wrapper {
+  flex: 0 0 33.333333%;
+  padding: 0 0.875rem;
+  /* Half of 1.75rem gap, creating consistent spacing */
+  display: flex;
+  /* To stretch the child card */
+}
+
+.carousel-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.carousel-btn {
+  background-color: var(--card-bg);
+  border: 1px solid var(--stroke);
+  color: var(--accent);
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.5rem;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.carousel-btn:hover {
+  background-color: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  transform: scale(1.1);
+}
+
+.carousel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+/* Old media query removed as it's replaced by the one below .plan-card */
+
+
 
 .plan-card {
   background-color: var(--card-bg);
@@ -185,6 +252,38 @@ section {
   padding: 2rem 1.75rem;
   display: grid;
   gap: 1.5rem;
+  /* min-width removed to allow grid to control width */
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  width: 100%;
+  /* Fill wrapper */
+}
+
+@media (max-width: 900px) {
+  .plan-card-wrapper {
+    flex: 0 0 100%;
+    /* Show 1 item on mobile */
+  }
+
+  .carousel-viewport {
+    width: 100%;
+    margin: 0;
+  }
+
+  .carousel-container {
+    flex-direction: column;
+  }
+
+  .carousel-btn {
+    display: flex;
+    /* Keep arrows on mobile if desired */
+  }
+}
+
+.plan-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  border-color: var(--accent);
 }
 
 .plan-card header {
@@ -578,4 +677,45 @@ section {
   .access__cta {
     grid-template-columns: 1fr;
   }
+}
+
+.staff-log__item--recommended {
+  border: 2px solid var(--accent);
+  animation: highlight-recommended 1.5s ease-out;
+}
+
+@keyframes highlight-recommended {
+  0% {
+    background-color: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    transform: scale(1.02);
+  }
+
+  30% {
+    background-color: var(--accent);
+    color: #fff;
+  }
+
+  100% {
+    background-color: var(--card-muted);
+    color: inherit;
+    border-color: var(--accent);
+    transform: scale(1);
+  }
+}
+
+.staff-log__item--recommended h4,
+.staff-log__item--recommended span,
+.staff-log__item--recommended div,
+.staff-log__item--recommended dt,
+.staff-log__item--recommended dd,
+.staff-log__item--recommended button {
+  /* Allow inheritance during animation */
+  transition: color 0.3s ease;
+}
+
+.staff-log__item--recommended .btn--ghost {
+  color: inherit;
+  border-color: currentColor;
 }

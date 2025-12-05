@@ -1,20 +1,10 @@
 import { useMemo, useState } from 'react';
-import { loadClients, upsertClient } from '../utils/dataStore.js';
+import { loadClients, upsertClient, deleteClient, loadMemberships, upsertMembership, deleteMembership, setRecommendedMembership } from '../utils/dataStore.js';
 
 const STAFF_USERNAME = 'staff';
 const STAFF_PASSWORD = 'admin123';
 
-const planPrices = {
-  Esencial: 45000,
-  Avanzado: 65000,
-  Elite: 90000,
-};
-
-const PLAN_DURATION = {
-  Esencial: { days: 7, label: '1 semana' },
-  Avanzado: { days: 14, label: '2 semanas' },
-  Elite: { days: 28, label: '4 semanas / 1 mes' },
-};
+// Constants removed in favor of dynamic state
 
 const normalizeName = (value) => value.trim().toLowerCase();
 
@@ -28,10 +18,10 @@ const formatCurrency = (value) =>
 const formatDate = (value) =>
   value
     ? new Date(value).toLocaleDateString('es-CO', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-      })
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    })
     : 'Sin fecha';
 
 const formatValidity = (client) => {
@@ -61,6 +51,7 @@ function Staff() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [clients, setClients] = useState([]);
+  const [memberships, setMemberships] = useState([]);
   const [registrationError, setRegistrationError] = useState('');
   const [registrationMessage, setRegistrationMessage] = useState('');
   const [formData, setFormData] = useState({
@@ -69,6 +60,31 @@ function Staff() {
     weight: '',
     height: '',
   });
+
+  const [membershipForm, setMembershipForm] = useState({
+    name: '',
+    durationDays: '',
+    price: '',
+  });
+  const [membershipMessage, setMembershipMessage] = useState('');
+
+  const planPrices = useMemo(() => {
+    const map = {};
+    memberships.forEach((m) => {
+      map[m.name] = m.price;
+      // Also store normalized version for robust lookup
+      map[m.name.trim().toLowerCase()] = m.price;
+    });
+    return map;
+  }, [memberships]);
+
+  const PLAN_DURATION = useMemo(() => {
+    const map = {};
+    memberships.forEach((m) => {
+      map[m.name] = { days: m.durationDays, label: m.label || `${m.durationDays} dias` };
+    });
+    return map;
+  }, [memberships]);
 
   const sortedClients = useMemo(
     () => clients.slice().sort((a, b) => (a.name || '').localeCompare(b.name || '')),
@@ -80,6 +96,11 @@ function Staff() {
     setClients(data);
   };
 
+  const fetchMemberships = async () => {
+    const data = await loadMemberships({ refresh: true });
+    setMemberships(data);
+  };
+
   const handleLogin = async (event) => {
     event.preventDefault();
     if (normalizeName(username) === STAFF_USERNAME && password.trim() === STAFF_PASSWORD) {
@@ -88,7 +109,9 @@ function Staff() {
       setUsername('');
       setPassword('');
       setRegistrationError('');
+      setRegistrationError('');
       await fetchClients();
+      await fetchMemberships();
     } else {
       setIsAuthenticated(false);
       setLoginError('Credenciales incorrectas. Usa el usuario STAFF y la contrasena establecida.');
@@ -177,56 +200,107 @@ function Staff() {
 
     setRegistrationError('');
     await fetchClients();
+    setRegistrationError('');
+    await fetchClients();
+    await fetchMemberships();
+  };
+
+  const handleMembershipChange = (field, value) => {
+    setMembershipForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleAddMembership = async (event) => {
+    event.preventDefault();
+    const { name, durationDays, price } = membershipForm;
+    if (!name || !durationDays || !price) {
+      setMembershipMessage('Todos los campos de la membresia son obligatorios.');
+      return;
+    }
+
+    try {
+      await upsertMembership({
+        name: name.trim(),
+        durationDays: Number(durationDays),
+        price: Number(price),
+        label: `${durationDays} dias`, // Auto-generated label for simplicity
+      });
+      setMembershipMessage('Membresia agregada/actualizada correctamente.');
+      setMembershipForm({ name: '', durationDays: '', price: '' });
+      await fetchMemberships();
+    } catch (error) {
+      console.error(error);
+      setMembershipMessage('Error al guardar la membresia.');
+    }
+  };
+
+  const handleDeleteClient = async (name) => {
+    if (window.confirm(`¿Estas seguro de eliminar al cliente ${name}?`)) {
+      await deleteClient(name);
+      await fetchClients();
+    }
+  };
+
+  const handleDeleteMembership = async (name) => {
+    if (window.confirm(`¿Estas seguro de eliminar la membresia ${name}?`)) {
+      await deleteMembership(name);
+      await fetchMemberships();
+    }
+  };
+
+  const handleSetRecommended = async (name) => {
+    await setRecommendedMembership(name);
+    await fetchMemberships();
   };
 
   return (
     <section className="staff staff--page" id="panel">
       <div className="container staff__container">
-          <div className="section-heading">
-            <p className="form-note">Acceso restringido</p>
-            <h2>Area administrativa</h2>
-            <p>
-              El apartado Staff solo es visible cuando inicias sesion como <strong>STAFF</strong>. Introduce las
-              credenciales para gestionar el archivo local de clientes y registrar nuevas inscripciones.
-            </p>
-          </div>
+        <div className="section-heading">
+          <p className="form-note">Acceso restringido</p>
+          <h2>Area administrativa</h2>
+          <p>
+            El apartado Staff solo es visible cuando inicias sesion como <strong>STAFF</strong>. Introduce las
+            credenciales para gestionar el archivo local de clientes y registrar nuevas inscripciones.
+          </p>
+        </div>
 
-          {!isAuthenticated ? (
-            <div className="staff-card" id="staff-access">
-              <form className="staff-login" onSubmit={handleLogin}>
-                <div className="form-row">
-                  <label className="form-field">
-                    <span>Usuario</span>
-                    <input
-                      type="text"
-                      autoComplete="username"
-                      value={username}
-                      onChange={(event) => setUsername(event.target.value)}
-                      required
-                    />
-                  </label>
-                  <label className="form-field">
-                    <span>Contrasena</span>
-                    <input
-                      type="password"
-                      autoComplete="current-password"
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      required
-                    />
-                  </label>
-                </div>
-                <button className="btn btn--primary" type="submit">
-                  Ingresar como STAFF
-                </button>
-                {loginError ? (
-                  <p className="form-note staff-login__error" role="alert" aria-live="polite">
-                    {loginError}
-                  </p>
-                ) : null}
-              </form>
-            </div>
-          ) : (
+        {!isAuthenticated ? (
+          <div className="staff-card" id="staff-access">
+            <form className="staff-login" onSubmit={handleLogin}>
+              <div className="form-row">
+                <label className="form-field">
+                  <span>Usuario</span>
+                  <input
+                    type="text"
+                    autoComplete="username"
+                    value={username}
+                    onChange={(event) => setUsername(event.target.value)}
+                    required
+                  />
+                </label>
+                <label className="form-field">
+                  <span>Contrasena</span>
+                  <input
+                    type="password"
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
+                  />
+                </label>
+              </div>
+              <button className="btn btn--primary" type="submit">
+                Ingresar como STAFF
+              </button>
+              {loginError ? (
+                <p className="form-note staff-login__error" role="alert" aria-live="polite">
+                  {loginError}
+                </p>
+              ) : null}
+            </form>
+          </div>
+        ) : (
+          <>
             <div className="staff-card staff-card--workspace" id="staff-workspace">
               <div className="staff-unlocked">
                 <form className="staff-registration" onSubmit={handleRegistration} noValidate>
@@ -249,9 +323,9 @@ function Staff() {
                         required
                       >
                         <option value="">Selecciona una opcion</option>
-                        <option value="Esencial">Plan Esencial</option>
-                        <option value="Avanzado">Plan Avanzado</option>
-                        <option value="Elite">Plan Elite</option>
+                        {memberships.map((m) => (
+                          <option key={m.name} value={m.name}>{m.name}</option>
+                        ))}
                       </select>
                     </label>
                   </div>
@@ -316,9 +390,19 @@ function Staff() {
                           >
                             <div className="staff-log__header">
                               <h4>{client.name}</h4>
-                              <span className="staff-log__plan">
-                                {client.plan ?? 'Plan sin registrar'} - {formatCurrency(planPrices[client.plan] ?? 0)}
-                              </span>
+                              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                                <span className="staff-log__plan">
+                                  {client.plan ?? 'Plan sin registrar'} - {formatCurrency(planPrices[client.plan] ?? planPrices[client.plan?.trim().toLowerCase()] ?? 0)}
+                                </span>
+                                <button
+                                  className="btn btn--ghost"
+                                  style={{ fontSize: '0.8rem', padding: '0.2rem 0.5rem', color: '#dc2626', borderColor: '#dc2626' }}
+                                  onClick={() => handleDeleteClient(client.name)}
+                                  type="button"
+                                >
+                                  Eliminar
+                                </button>
+                              </div>
                             </div>
                             <dl className="staff-log__details">
                               <div>
@@ -346,9 +430,92 @@ function Staff() {
                 </div>
               </div>
             </div>
-          )}
+
+            <div className="staff-card staff-card--workspace" style={{ marginTop: '2rem' }}>
+              <h3>Gestion de Membresias</h3>
+              <form className="staff-registration" onSubmit={handleAddMembership}>
+                <div className="form-row">
+                  <label className="form-field">
+                    <span>Nombre de Membresia</span>
+                    <input
+                      type="text"
+                      value={membershipForm.name}
+                      onChange={(e) => handleMembershipChange('name', e.target.value)}
+                      required
+                    />
+                  </label>
+                  <label className="form-field">
+                    <span>Duracion (dias)</span>
+                    <input
+                      type="number"
+                      min="1"
+                      value={membershipForm.durationDays}
+                      onChange={(e) => handleMembershipChange('durationDays', e.target.value)}
+                      required
+                    />
+                  </label>
+                  <label className="form-field">
+                    <span>Precio</span>
+                    <input
+                      type="number"
+                      min="0"
+                      value={membershipForm.price}
+                      onChange={(e) => handleMembershipChange('price', e.target.value)}
+                      required
+                    />
+                  </label>
+                </div>
+                <button className="btn btn--primary" type="submit">
+                  Agregar Membresia
+                </button>
+                {membershipMessage && <p className="form-note">{membershipMessage}</p>}
+              </form>
+
+              <div className="staff-log" style={{ marginTop: '2rem' }}>
+                <h4 style={{ marginBottom: '1rem' }}>Membresias Activas</h4>
+                {memberships.length === 0 ? (
+                  <p className="staff-log__empty">No hay membresias registradas.</p>
+                ) : (
+                  <ul className="staff-log__list">
+                    {memberships.map((m) => (
+                      <li className={`staff-log__item${m.recommended ? ' staff-log__item--recommended' : ''}`} key={m.name}>
+                        <div className="staff-log__header">
+                          <h4>{m.name}</h4>
+                          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                            {m.recommended ? (
+                              <span style={{ color: '#f97316', fontWeight: 600, fontSize: '0.9rem' }}>★ Recomendado</span>
+                            ) : (
+                              <button
+                                className="btn btn--ghost"
+                                style={{ fontSize: '0.8rem', padding: '0.2rem 0.5rem' }}
+                                onClick={() => setRecommendedMembership(m.name)}
+                                type="button"
+                              >
+                                Destacar
+                              </button>
+                            )}
+                            <span style={{ fontWeight: 600 }}>{formatCurrency(m.price)}</span>
+                            <span className="form-note">({m.durationDays} dias)</span>
+                            <button
+                              className="btn btn--ghost"
+                              style={{ fontSize: '0.8rem', padding: '0.2rem 0.5rem', color: '#dc2626', borderColor: '#dc2626' }}
+                              onClick={() => handleDeleteMembership(m.name)}
+                              type="button"
+                            >
+                              Eliminar
+                            </button>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </>
+        )}
       </div>
-    </section>
+    </section >
   );
 }
 
